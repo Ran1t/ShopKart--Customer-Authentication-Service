@@ -5,11 +5,11 @@ export const registerCustomer= async (req,res)=>{
         const {fullname,email,password,phone}=req.body
 
         if(!fullname || !email || !password || !phone){
-            return res.status(400).json({message:"All fields required"})
+            return res.status(400).json({message:"Missing Fields"})
         }
 
         if(password.length<6){
-            return res.status(400).json({message:"Password Length should be greater than 6"})
+            return res.status(400).json({message:"Password too short"})
         }
 
         const emailExists= await Customer.findOne({email})
@@ -22,10 +22,10 @@ export const registerCustomer= async (req,res)=>{
             password,
             phone
         }) 
-        res.status(201).json({message:"Customer Registered"})
+        res.status(201).json({message:"Customer Registered Successfully"})
     }
     catch(error){
-        res.status(500).json({message:"Internal Server Error"})
+        res.status(500).json({message:"Internal Serevr Error",error:error})
     }
 }
 
@@ -35,10 +35,10 @@ export const loginCustomer=async (req,res)=>{
         const {email,password}=req.body
         const customer=await Customer.findOne({email})
         if(!customer){
-            return res.status(404).json({message:"User Not Found"})
+            return res.status(404).json({message:"Invalid Credentials"})
         }
         
-        res.status(200).json({message:"User Logged In"})
+        res.status(200).json({message:"Login Successfully"})
     }
     catch(error){
         res.status(500).json({message:"Internal Server Error",error:error})

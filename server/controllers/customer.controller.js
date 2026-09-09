@@ -79,3 +79,8 @@ export const loginCustomer=async (req,res)=>{
 export const getUser=async(req,res)=>{
     res.status(200).json({"message":"Customer Authenticated",customerData:req.customer})
 }
+
+export const logoutCustomer=async(req,res)=>{
+    res.clearCookie("token",cookiesOptions)
+    res.status(200).json({"success":true,"message":"Logout Successfully"})
+}

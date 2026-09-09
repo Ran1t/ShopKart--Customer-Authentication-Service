@@ -2,6 +2,7 @@ import express from "express"
 import mongoose from "mongoose"
 import dotenv from "dotenv"
 import customerRoutes from "./routes/customer.routes.js"
+import cookieParser from "cookie-parser"
 
 const app=express()
 const PORT=8000
@@ -15,6 +16,7 @@ mongoose.connect(process.env.dbUrl).then(()=>{
 })
 
 app.use(express.json())
+app.use(cookieParser())
 app.use("/customers",customerRoutes)
 
 app.listen(PORT,()=>{

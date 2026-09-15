@@ -3,6 +3,7 @@ import mongoose from "mongoose"
 import dotenv from "dotenv"
 import customerRoutes from "./routes/customer.routes.js"
 import cookieParser from "cookie-parser"
+import cors from "cors"
 
 const app=express()
 const PORT=8000
@@ -14,6 +15,11 @@ mongoose.connect(process.env.dbUrl).then(()=>{
 }).catch((err)=>{
     console.log(err)
 })
+
+app.use(cors({
+    origin:"http://localhost:5173",
+    credentials:true
+}))
 
 app.use(express.json())
 app.use(cookieParser())

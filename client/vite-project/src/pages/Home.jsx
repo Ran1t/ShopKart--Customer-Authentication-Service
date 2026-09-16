@@ -1,4 +1,6 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { axiosInstance } from '../axiosCalls/axios'
 
 const categories = [
   'All', 'Electronics', 'Fashion', 'Home & Living', 'Beauty', 'Groceries', 'Sports',
@@ -16,6 +18,16 @@ const products = [
 ]
 
 export default function Home() {
+  const navigate = useNavigate()
+
+const handleLogout = async () => {
+  try {
+    await axiosInstance.post("/customers/logout")
+    navigate("/login")
+  } catch (error) {
+    console.error("Logout failed:", error)
+  }
+}
   return (
     <div className="min-h-screen w-full bg-white font-[Inter]">
       <style>{`
@@ -64,6 +76,13 @@ export default function Home() {
             <div className="w-9 h-9 rounded-full bg-[#1B2A2E] text-[#FFF4EC] text-[13px] font-semibold flex items-center justify-center">
               A
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-lg bg-[#FF6B4A] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#F15A3A]"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>

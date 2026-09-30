@@ -1,11 +1,14 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { axiosInstance } from '../axiosCalls/axios'
+import { useAuth } from '../auth/authContext'
 
 export default function Signup() {
     const [form, setForm] = useState({ fullname: "", email: "", password: "", username: "", phone: "" })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const navigate = useNavigate()
+    const { setUser } = useAuth()
 
     const handleChange = (e) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -16,8 +19,10 @@ export default function Signup() {
         setError("")
         setLoading(true)
         try {
-            await axiosInstance.post("/customers/register", form)
+            const response = await axiosInstance.post("/customers/register", form)
+            setUser(response.data.customer)
             console.log("User Registered")
+            navigate("/home")
         }
         catch (error) {
             console.log(error)

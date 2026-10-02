@@ -16,27 +16,37 @@ export default function SiteHeader({ theme = "light", onLogout }) {
     const [cartOpen, setCartOpen] = useState(false);
     const { items, itemCount, subtotal, changeQuantity, removeFromCart } = useCart();
     const dark = theme === "dark";
+    const paper = theme === "paper";
 
     return (
         <>
-            <header className={`sticky top-0 z-30 border-b backdrop-blur ${dark ? "border-slate-800 bg-slate-950/90 text-slate-100" : "border-[#E4E2DC] bg-white/95 text-[#1B2A2E]"}`}>
-                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+            <header className={`sticky top-0 z-30 border-b-2 backdrop-blur ${dark ? "border-slate-800 bg-slate-950/90 text-slate-100" : paper ? "border-[#2d2d2d] bg-[#fdfbf7]/95 text-[#2d2d2d]" : "border-[#E4E2DC] bg-white/95 text-[#1B2A2E]"}`}>
+                <div className={`mx-auto flex h-16 items-center justify-between gap-3 px-4 sm:px-6 ${paper ? "max-w-5xl" : "max-w-7xl"}`}>
                     <Link to="/home" className="flex shrink-0 items-center gap-2 font-semibold">
-                        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${dark ? "bg-indigo-600 text-white" : "bg-[#1B2A2E] text-[#FFF4EC]"}`}><CartIcon /></span>
-                        <span className="text-lg">ShopKart</span>
+                        <span className={`flex h-9 w-9 items-center justify-center ${paper ? "rotate-[-3deg] border-2 border-[#2d2d2d] bg-[#fff9c4] text-[#2d2d2d] shadow-[2px_2px_0px_0px_#2d2d2d]" : "rounded-xl"} ${dark ? "bg-indigo-600 text-white" : !paper ? "bg-[#1B2A2E] text-[#FFF4EC]" : ""}`} style={paper ? { borderRadius: "10px 5px 12px 6px / 6px 12px 5px 10px" } : undefined}><CartIcon /></span>
+                        <span className={`text-lg ${paper ? "font-[Kalam] text-xl" : ""}`}>ShopKart</span>
                     </Link>
 
                     <nav aria-label="Main navigation" className="flex items-center gap-3 text-xs font-semibold sm:gap-6 sm:text-sm">
-                        <Link to="/home" className={dark ? "text-slate-400 transition hover:text-white" : "transition hover:text-[#FF6B4A]"}>Home</Link>
-                        <Link to="/products" className={dark ? "text-slate-400 transition hover:text-white" : "transition hover:text-[#FF6B4A]"}>Products</Link>
+                        <Link to="/home" className={dark ? "text-slate-400 transition hover:text-white" : paper ? "transition hover:text-[#2d5da1] hover:underline hover:decoration-[#ff4d4d] hover:decoration-2 hover:underline-offset-4" : "transition hover:text-[#FF6B4A]"}>Home</Link>
+                        <Link to="/products" className={dark ? "text-slate-400 transition hover:text-white" : paper ? "transition hover:text-[#2d5da1] hover:underline hover:decoration-[#ff4d4d] hover:decoration-2 hover:underline-offset-4" : "transition hover:text-[#FF6B4A]"}>Products</Link>
                     </nav>
 
                     <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                        <button type="button" onClick={() => setCartOpen(true)} aria-label={`Open cart, ${itemCount} items`} className={`relative flex h-9 w-9 items-center justify-center rounded-lg border transition ${dark ? "border-slate-800 bg-slate-900 text-slate-300 hover:text-white" : "border-[#E4E2DC] hover:border-[#1B2A2E]"}`}>
+                        <button type="button" onClick={() => setCartOpen(true)} aria-label={`Open cart, ${itemCount} items`} className={`relative flex h-10 w-10 items-center justify-center border transition ${paper ? "border-2 border-[#2d2d2d] bg-white shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[#e5e0d8]" : "rounded-lg"} ${dark ? "border-slate-800 bg-slate-900 text-slate-300 hover:text-white" : !paper ? "border-[#E4E2DC] hover:border-[#1B2A2E]" : ""}`} style={paper ? { borderRadius: "8px 14px 6px 12px / 13px 6px 14px 7px" } : undefined}>
                             <CartIcon />
-                            {itemCount > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF6B4A] px-1 text-[10px] font-bold text-white">{itemCount}</span>}
+                            {itemCount > 0 && <span className={`absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center px-1 text-[10px] font-bold text-white ${paper ? "border border-[#2d2d2d] bg-[#ff4d4d]" : "rounded-full bg-[#FF6B4A]"}`} style={paper ? { borderRadius: "8px 5px 7px 4px" } : undefined}>{itemCount}</span>}
                         </button>
-                        {onLogout && <button type="button" onClick={onLogout} className="rounded-lg bg-[#FF6B4A] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#F15A3A] sm:px-4 sm:text-sm">Logout</button>}
+                        {onLogout && (
+                            <button
+                                type="button"
+                                onClick={onLogout}
+                                className={`min-h-10 px-3 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm ${paper ? "border-2 border-[#2d2d2d] bg-white text-[#2d2d2d] shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[#ff4d4d] hover:text-white" : "rounded-lg bg-[#FF6B4A] text-white hover:bg-[#F15A3A]"}`}
+                                style={paper ? { borderRadius: "14px 7px 12px 6px" } : undefined}
+                            >
+                                Logout
+                            </button>
+                        )}
                     </div>
                 </div>
             </header>
@@ -44,21 +54,21 @@ export default function SiteHeader({ theme = "light", onLogout }) {
             {cartOpen && (
                 <div className="fixed inset-0 z-50 flex justify-end" role="presentation">
                     <button type="button" aria-label="Close cart" onClick={() => setCartOpen(false)} className="absolute inset-0 bg-slate-950/45" />
-                    <aside role="dialog" aria-modal="true" aria-labelledby="cart-title" className="relative flex h-full w-full max-w-md flex-col bg-white text-[#1B2A2E] shadow-2xl">
-                        <div className="flex items-center justify-between border-b border-[#E4E2DC] px-5 py-4">
+                    <aside role="dialog" aria-modal="true" aria-labelledby="cart-title" className={`relative flex h-full w-full max-w-md flex-col ${paper ? "border-l-2 border-[#2d2d2d] bg-[#fdfbf7] text-[#2d2d2d] shadow-[-6px_0px_0px_0px_#2d2d2d]" : "bg-white text-[#1B2A2E] shadow-2xl"}`}>
+                        <div className={`flex items-center justify-between px-5 py-4 ${paper ? "border-b-2 border-dashed border-[#2d2d2d]/50" : "border-b border-[#E4E2DC]"}`}>
                             <div>
-                                <h2 id="cart-title" className="text-lg font-bold">Your cart</h2>
+                                <h2 id="cart-title" className={`text-lg font-bold ${paper ? "font-[Kalam] text-2xl" : ""}`}>Your cart</h2>
                                 <p className="mt-0.5 text-xs text-[#6B7773]">{itemCount} {itemCount === 1 ? "item" : "items"}</p>
                             </div>
-                            <button type="button" onClick={() => setCartOpen(false)} aria-label="Close cart" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E4E2DC] text-xl leading-none hover:bg-[#FFF4EC]">×</button>
+                            <button type="button" onClick={() => setCartOpen(false)} aria-label="Close cart" className={`flex h-9 w-9 items-center justify-center border text-xl leading-none hover:bg-[#FFF4EC] ${paper ? "border-2 border-[#2d2d2d] bg-white shadow-[2px_2px_0px_0px_#2d2d2d]" : "rounded-full border-[#E4E2DC]"}`} style={paper ? { borderRadius: "8px 14px 6px 12px" } : undefined}>×</button>
                         </div>
 
                         {items.length === 0 ? (
                             <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-                                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF4EC] text-[#FF6B4A]"><CartIcon /></span>
-                                <h3 className="mt-4 font-semibold">Your cart is empty</h3>
+                                <span className={`flex h-14 w-14 items-center justify-center ${paper ? "rotate-[-3deg] border-2 border-[#2d2d2d] bg-[#fff9c4] text-[#2d2d2d]" : "rounded-full bg-[#FFF4EC] text-[#FF6B4A]"}`} style={paper ? { borderRadius: "16px 8px 18px 6px" } : undefined}><CartIcon /></span>
+                                <h3 className={`mt-4 font-semibold ${paper ? "font-[Kalam] text-xl" : ""}`}>Your cart is empty</h3>
                                 <p className="mt-1 text-sm text-[#6B7773]">Browse the catalog to find something you love.</p>
-                                <Link to="/products" onClick={() => setCartOpen(false)} className="mt-5 rounded-lg bg-[#FF6B4A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#F15A3A]">Browse products</Link>
+                                <Link to="/products" onClick={() => setCartOpen(false)} className={`mt-5 px-4 py-2.5 text-sm font-semibold text-white ${paper ? "border-2 border-[#2d2d2d] bg-[#ff4d4d] shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-x-[1px] hover:translate-y-[1px]" : "rounded-lg bg-[#FF6B4A] hover:bg-[#F15A3A]"}`} style={paper ? { borderRadius: "14px 7px 12px 6px" } : undefined}>Browse products</Link>
                             </div>
                         ) : (
                             <>

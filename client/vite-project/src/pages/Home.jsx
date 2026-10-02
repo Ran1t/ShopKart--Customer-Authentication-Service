@@ -27,140 +27,208 @@ const fashionEdits = [
   },
 ]
 
+const wobblyRadius = '255px 15px 225px 15px / 15px 225px 15px 255px'
+const cardRadius = '18px 5px 20px 7px / 8px 20px 6px 18px'
+
 export default function Home() {
   const navigate = useNavigate()
   const { setUser } = useAuth()
 
-const handleLogout = async () => {
-  try {
-    await axiosInstance.post("/customers/logout")
-    setUser(null)
-    navigate("/login")
-  } catch (error) {
-    console.error("Logout failed:", error)
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post('/customers/logout')
+      setUser(null)
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
   }
-}
+
   return (
-    <div className="min-h-screen w-full bg-white font-[Inter]">
+    <div
+      className="min-h-screen w-full bg-[#fdfbf7] font-[Patrick_Hand] text-[#2d2d2d]"
+      style={{
+        backgroundImage: 'radial-gradient(#e5e0d8 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
+    >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Patrick+Hand&display=swap');
       `}</style>
 
-      <SiteHeader onLogout={handleLogout} />
+      <SiteHeader theme="paper" onLogout={handleLogout} />
 
-      {/* Hero */}
-      <section className="bg-[#FFF4EC]">
-        <div className="max-w-300 mx-auto px-6 py-14 grid lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <span className="inline-flex items-center gap-2 bg-white text-[#1B2A2E] text-[13px] font-medium px-3 py-1.5 rounded-full border border-[#E4E2DC]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B4A]" />
+      <main className="mx-auto max-w-5xl px-5 sm:px-6">
+        <section className="grid items-center gap-8 py-10 sm:py-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
+          <div
+            className="relative border-[3px] border-[#2d2d2d] bg-white px-6 py-8 shadow-[8px_8px_0px_0px_#2d2d2d] sm:px-10 sm:py-10"
+            style={{ borderRadius: wobblyRadius }}
+          >
+            <span
+              aria-hidden="true"
+              className="absolute -top-3 left-1/2 h-7 w-24 -translate-x-1/2 rotate-[-3deg] bg-[#e5e0d8]/80"
+              style={{ borderRadius: '3px 2px 5px 1px' }}
+            />
+            <span
+              className="inline-flex -rotate-2 items-center gap-2 border-2 border-[#2d2d2d] bg-[#fff9c4] px-3 py-1.5 text-sm font-bold"
+              style={{ borderRadius: '5px 2px 7px 3px' }}
+            >
+              <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-[#ff4d4d]" />
               Festive sale is live
             </span>
-            <h1 className="font-[Sora] text-[#1B2A2E] text-[40px] leading-[1.15] font-semibold tracking-tight mt-5">
-              Everything you need, delivered to your door.
+            <h1 className="mt-5 font-[Kalam] text-4xl leading-[1.12] sm:text-5xl">
+              Everything you need, delivered to your door<span className="text-[#ff4d4d]">!</span>
             </h1>
-            <p className="text-[#6B7773] text-[16px] leading-relaxed mt-4 max-w-md">
+            <p className="mt-4 max-w-md text-lg leading-relaxed text-[#55514c] sm:text-xl">
               Shop electronics, fashion, home essentials and more — with fast delivery and easy returns on every order.
             </p>
-            <div className="flex items-center gap-3 mt-7">
-              <button onClick={() => navigate('/products')} className="bg-[#FF6B4A] text-white font-[Sora] font-semibold text-[15px] px-6 py-3 rounded-lg hover:bg-[#F15A3A] transition-colors">
+            <div className="mt-7 flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => navigate('/products')}
+                className="min-h-12 border-[3px] border-[#2d2d2d] bg-white px-6 py-2 text-lg font-bold shadow-[4px_4px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#ff4d4d] hover:text-white hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                style={{ borderRadius: wobblyRadius }}
+              >
                 Start shopping
               </button>
-              <a href="#style-edit" className="text-[#1B2A2E] font-semibold text-[15px] px-4 py-3 hover:text-[#FF6B4A] transition-colors">Explore the style edit</a>
+              <a
+                href="#style-edit"
+                className="min-h-12 px-3 py-2 text-lg font-bold text-[#2d2d2d] underline decoration-[#2d5da1] decoration-2 underline-offset-4 transition hover:text-[#2d5da1]"
+              >
+                Explore the style edit
+              </a>
             </div>
+            <svg aria-hidden="true" className="absolute -bottom-8 right-7 hidden h-12 w-28 rotate-6 text-[#2d5da1] sm:block" viewBox="0 0 112 48" fill="none">
+              <path d="M5 10c27 1 49 10 69 26m0 0-3-14m3 14 13-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 5" />
+            </svg>
           </div>
 
-          <div className="relative h-72 flex items-center justify-center">
-            <div className="absolute top-2 left-4 bg-white rounded-xl shadow-[0_8px_24px_-8px_rgba(27,42,46,0.18)] px-3.5 py-2 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#FF6B4A]" />
-              <span className="text-[#1B2A2E] text-[13px] font-medium">Flat 30% off</span>
-            </div>
-            <div className="absolute bottom-6 right-2 bg-white rounded-xl shadow-[0_8px_24px_-8px_rgba(27,42,46,0.18)] px-3.5 py-2.5">
-              <div className="text-[#1B2A2E] text-[13px] font-semibold">Free delivery</div>
-              <div className="text-[#8A9490] text-[11px]">on orders over ₹499</div>
-            </div>
-            <div className="w-56 h-56 rounded-4xl bg-white shadow-[0_20px_50px_-15px_rgba(27,42,46,0.25)] flex items-center justify-center">
-              <svg width="110" height="110" viewBox="0 0 24 24" fill="none">
-                <circle cx="9" cy="20" r="1.4" fill="#1B2A2E" />
-                <circle cx="17" cy="20" r="1.4" fill="#1B2A2E" />
-                <path d="M2.5 3h2l2.2 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.97-1.66L20 7.5H6" stroke="#1B2A2E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                <rect x="9.5" y="9.5" width="3" height="3" rx="0.5" fill="#FF6B4A"/>
+          <div className="relative flex min-h-72 items-center justify-center py-4 sm:min-h-80">
+            <div
+              className="flex h-56 w-56 rotate-2 items-center justify-center border-[3px] border-[#2d2d2d] bg-[#fff9c4] shadow-[8px_8px_0px_0px_#2d2d2d] transition-transform duration-150 hover:-rotate-2 sm:h-64 sm:w-64"
+              style={{ borderRadius: '22px 8px 26px 10px / 12px 28px 9px 24px' }}
+            >
+              <svg className="h-28 w-28 text-[#2d2d2d] sm:h-32 sm:w-32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="9" cy="20" r="1.4" fill="currentColor" />
+                <circle cx="17" cy="20" r="1.4" fill="currentColor" />
+                <path d="M2.5 3h2l2.2 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.97-1.66L20 7.5H6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="m10 10 2 2m0-2-2 2" stroke="#ff4d4d" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Fashion style edit */}
-      <section id="style-edit" className="bg-[#FAF9F6] scroll-mt-16">
-        <div className="max-w-300 mx-auto px-6 py-12 sm:py-16">
-          <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
-            <div>
-              <p className="text-[12px] font-semibold tracking-[0.16em] text-[#D84F38]">A LITTLE INSPIRATION</p>
-              <h2 className="font-[Sora] text-[#1B2A2E] text-[26px] sm:text-[30px] font-semibold tracking-tight mt-2">The style edit</h2>
-              <p className="mt-2 max-w-lg text-sm leading-relaxed text-[#6B7773]">Fresh outfit ideas for him, for her, and for your next new favorite look.</p>
+            <div
+              className="absolute left-0 top-5 -rotate-3 border-2 border-[#2d2d2d] bg-white px-3.5 py-2 shadow-[3px_3px_0px_0px_#2d2d2d] sm:left-2"
+              style={{ borderRadius: '7px 15px 5px 13px' }}
+            >
+              <span className="text-lg font-bold">Flat 30% off ✳</span>
             </div>
-            <Link to="/products?category=Fashion" className="text-sm font-semibold text-[#1B2A2E] transition-colors hover:text-[#D84F38]">Shop all fashion →</Link>
+            <div
+              className="absolute bottom-2 right-0 rotate-2 border-2 border-[#2d2d2d] bg-white px-3.5 py-2.5 shadow-[3px_3px_0px_0px_#2d2d2d] sm:right-2"
+              style={{ borderRadius: '15px 6px 13px 7px' }}
+            >
+              <div className="text-lg font-bold">Free delivery</div>
+              <div className="text-sm text-[#55514c]">on orders over ₹499</div>
+            </div>
+            <span aria-hidden="true" className="absolute right-2 top-1 hidden animate-bounce font-[Kalam] text-4xl text-[#ff4d4d] [animation-duration:3s] sm:block">✳</span>
+          </div>
+        </section>
+
+        <section id="style-edit" className="scroll-mt-20 py-8 sm:py-12">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b-2 border-dashed border-[#2d2d2d]/40 pb-4">
+            <div>
+              <p
+                className="inline-block -rotate-1 bg-[#fff9c4] px-3 py-1 text-sm font-bold tracking-[0.12em] text-[#2d5da1]"
+                style={{ borderRadius: '4px 2px 6px 3px' }}
+              >
+                A LITTLE INSPIRATION
+              </p>
+              <h2 className="mt-2 font-[Kalam] text-3xl sm:text-4xl">The style edit</h2>
+              <p className="mt-2 max-w-lg text-lg leading-relaxed text-[#55514c]">
+                Fresh outfit ideas for him, for her, and for your next new favorite look.
+              </p>
+            </div>
+            <Link
+              to="/products?category=Fashion"
+              className="text-lg font-bold text-[#2d2d2d] underline decoration-[#ff4d4d] decoration-2 underline-offset-4 transition-colors hover:text-[#2d5da1]"
+            >
+              Shop all fashion →
+            </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {fashionEdits.map((edit) => (
-              <article key={edit.label} className="group overflow-hidden rounded-xl border border-[#E4E2DC] bg-white">
-                <div className="aspect-[4/3] overflow-hidden bg-[#F5F3EF]">
-                  <img src={edit.image} alt={edit.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <div className="grid gap-7 pb-12 sm:grid-cols-2 lg:grid-cols-3">
+            {fashionEdits.map((edit, index) => (
+              <article
+                key={edit.label}
+                className={`group relative border-2 border-[#2d2d2d] bg-white p-2.5 shadow-[4px_4px_0px_0px_rgba(45,45,45,0.28)] transition-transform duration-100 hover:-translate-y-1 hover:rotate-1 hover:shadow-[6px_6px_0px_0px_#2d2d2d] motion-reduce:transition-none ${index === 1 ? 'rotate-[0.5deg]' : index === 2 ? '-rotate-[0.5deg]' : ''}`}
+                style={{ borderRadius: cardRadius }}
+              >
+                <span
+                  className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 -rotate-2 bg-[#fff9c4] px-3 py-1 text-sm font-bold"
+                  style={{ borderRadius: '3px 2px 5px 1px' }}
+                >
+                  {edit.label}
+                </span>
+                <div
+                  className="aspect-[4/3] overflow-hidden border-2 border-[#2d2d2d] bg-[#e5e0d8]"
+                  style={{ borderRadius: '10px 5px 12px 6px / 6px 12px 5px 10px' }}
+                >
+                  <img src={edit.image} alt={edit.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 </div>
-                <div className="p-4 sm:p-5">
-                  <p className="text-[11px] font-semibold tracking-[0.14em] text-[#D84F38]">{edit.label}</p>
-                  <h3 className="mt-2 font-[Sora] text-lg font-semibold text-[#1B2A2E]">{edit.title}</h3>
-                  <p className="mt-2 min-h-10 text-sm leading-relaxed text-[#6B7773]">{edit.description}</p>
-                  <Link to="/products?category=Fashion" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1B2A2E] hover:text-[#D84F38]">
+                <div className="px-2 pb-2 pt-4">
+                  <h3 className="font-[Kalam] text-2xl text-[#2d2d2d]">{edit.title}</h3>
+                  <p className="mt-1 min-h-12 text-lg leading-relaxed text-[#55514c]">{edit.description}</p>
+                  <Link
+                    to="/products?category=Fashion"
+                    className="mt-4 inline-flex min-h-12 items-center gap-2 text-lg font-bold text-[#2d5da1] underline decoration-[#2d5da1] decoration-2 underline-offset-4 hover:text-[#ff4d4d]"
+                  >
                     Explore fashion <span aria-hidden="true">→</span>
                   </Link>
                 </div>
               </article>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* Footer */}
-      <footer className="bg-[#1B2A2E]">
-        <div className="max-w-300 mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+      <footer className="border-t-2 border-[#2d2d2d] bg-[#e5e0d8]/80">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 px-5 py-10 sm:px-6 md:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-[#FF6B4A] flex items-center justify-center">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="9" cy="20" r="1.2" fill="#1B2A2E" />
-                  <circle cx="17" cy="20" r="1.2" fill="#1B2A2E" />
-                  <path d="M2.5 3h2l2.2 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.97-1.66L20 7.5H6" stroke="#1B2A2E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <div className="mb-3 flex items-center gap-2">
+              <div
+                className="flex h-9 w-9 rotate-[-3deg] items-center justify-center border-2 border-[#2d2d2d] bg-[#fff9c4] shadow-[2px_2px_0px_0px_#2d2d2d]"
+                style={{ borderRadius: '10px 5px 12px 6px' }}
+              >
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="9" cy="20" r="1.2" fill="#2d2d2d" />
+                  <circle cx="17" cy="20" r="1.2" fill="#2d2d2d" />
+                  <path d="M2.5 3h2l2.2 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.97-1.66L20 7.5H6" stroke="#2d2d2d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <span className="text-[#FFF4EC] font-[Sora] font-semibold text-[15px]">ShopKart</span>
+              <span className="font-[Kalam] text-xl font-bold">ShopKart</span>
             </div>
-            <p className="text-[#8A9490] text-[13px] leading-relaxed">Your everyday marketplace for everything, delivered fast.</p>
+            <p className="text-base leading-relaxed text-[#55514c]">Your everyday marketplace for everything, delivered fast.</p>
           </div>
           <div>
-            <div className="text-[#FFF4EC] text-[13px] font-semibold mb-3">Shop</div>
-            <ul className="space-y-2 text-[#8A9490] text-[13px]">
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Electronics</a></li>
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Fashion</a></li>
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Home & Living</a></li>
+            <h2 className="mb-3 font-[Kalam] text-xl font-bold">Shop</h2>
+            <ul className="space-y-2 text-base text-[#55514c]">
+              <li><Link to="/products?category=Electronics" className="transition hover:text-[#2d5da1] hover:line-through">Electronics</Link></li>
+              <li><Link to="/products?category=Fashion" className="transition hover:text-[#2d5da1] hover:line-through">Fashion</Link></li>
+              <li><Link to="/products?category=Home" className="transition hover:text-[#2d5da1] hover:line-through">Home &amp; Living</Link></li>
             </ul>
           </div>
           <div>
-            <div className="text-[#FFF4EC] text-[13px] font-semibold mb-3">Support</div>
-            <ul className="space-y-2 text-[#8A9490] text-[13px]">
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Track order</a></li>
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Returns</a></li>
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Contact us</a></li>
+            <h2 className="mb-3 font-[Kalam] text-xl font-bold">Support</h2>
+            <ul className="space-y-2 text-base text-[#55514c]">
+              <li><a href="#style-edit" className="transition hover:text-[#2d5da1] hover:line-through">Track order</a></li>
+              <li><a href="#style-edit" className="transition hover:text-[#2d5da1] hover:line-through">Returns</a></li>
+              <li><a href="#style-edit" className="transition hover:text-[#2d5da1] hover:line-through">Contact us</a></li>
             </ul>
           </div>
           <div>
-            <div className="text-[#FFF4EC] text-[13px] font-semibold mb-3">Company</div>
-            <ul className="space-y-2 text-[#8A9490] text-[13px]">
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-[#FF6B4A] transition-colors">Terms</a></li>
+            <h2 className="mb-3 font-[Kalam] text-xl font-bold">Company</h2>
+            <ul className="space-y-2 text-base text-[#55514c]">
+              <li><a href="#style-edit" className="transition hover:text-[#2d5da1] hover:line-through">About</a></li>
+              <li><a href="#style-edit" className="transition hover:text-[#2d5da1] hover:line-through">Careers</a></li>
+              <li><a href="#style-edit" className="transition hover:text-[#2d5da1] hover:line-through">Terms</a></li>
             </ul>
           </div>
         </div>

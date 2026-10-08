@@ -1,56 +1,112 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { axiosInstance } from "../axiosCalls/axios";
 import { CartContext } from "./cartContext";
 
-const STORAGE_KEY = "shopkart-cart";
-
-function readCart() {
-    try {
-        const savedCart = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
-        return Array.isArray(savedCart) ? savedCart : [];
-    } catch {
-        return [];
-    }
-}
-
 export default function CartProvider({ children }) {
-    const [items, setItems] = useState(readCart);
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [pendingProductIds, setPendingProductIds] = useState([]);
+
+    const refreshCart = useCallback(async () => {
+        setLoading(true);
+        setError(false);
+
+        try {
+            const response = await axiosInstance.get("/cart");
+            setItems(response.data.cart ?? []);
+        } catch (requestError) {
+            console.error("Failed to load cart:", requestError);
+            setError(true);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }, [items]);
+        refreshCart();
+    }, [refreshCart]);
 
-    const addToCart = (product) => {
+    const addToCart = useCallback(async (product) => {
         if (!product || product.stock <= 0) return;
 
-        setItems((currentItems) => {
-            const existingItem = currentItems.find((item) => item.product._id === product._id);
+        setPendingProductIds((current) => [...current, product._id]);
+        setError(false);
 
-            if (!existingItem) return [...currentItems, { product, quantity: 1 }];
+        try {
+            const response = await axiosInstance.post(`/cart/${product._id}`);
+            setItems(response.data.cart ?? []);
+        } catch (requestError) {
+            console.error("Failed to add product to cart:", requestError);
+            setError(true);
+            throw requestError;
+        } finally {
+            setPendingProductIds((current) => current.filter((id) => id !== product._id));
+        }
+    }, []);
 
-            return currentItems.map((item) => item.product._id === product._id
-                ? { product, quantity: Math.min(item.quantity + 1, product.stock) }
-                : item);
-        });
-    };
+    const changeQuantity = useCallback(async (productId, quantity) => {
+        if (!productId || quantity < 1) return;
 
-    const changeQuantity = (productId, quantity) => {
-        setItems((currentItems) => currentItems.flatMap((item) => {
-            if (item.product._id !== productId) return [item];
-            if (quantity <= 0 || item.product.stock <= 0) return [];
+        setPendingProductIds((current) => [...current, productId]);
+        setError(false);
 
-            return [{ ...item, quantity: Math.min(quantity, item.product.stock) }];
-        }));
-    };
+        try {
+            const response = await axiosInstance.patch(`/cart/${productId}`, { quantity });
+            setItems(response.data.cart ?? []);
+        } catch (requestError) {
+            console.error("Failed to update cart quantity:", requestError);
+            setError(true);
+            throw requestError;
+        } finally {
+            setPendingProductIds((current) => current.filter((id) => id !== productId));
+        }
+    }, []);
 
-    const removeFromCart = (productId) => {
-        setItems((currentItems) => currentItems.filter((item) => item.product._id !== productId));
-    };
+    const removeFromCart = useCallback(async (productId) => {
+        if (!productId) return;
 
-    const itemCount = items.reduce((count, item) => count + item.quantity, 0);
-    const subtotal = items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+        setPendingProductIds((current) => [...current, productId]);
+        setError(false);
+
+        try {
+            const response = await axiosInstance.delete(`/cart/${productId}`);
+            setItems(response.data.cart ?? []);
+        } catch (requestError) {
+            console.error("Failed to remove product from cart:", requestError);
+            setError(true);
+            throw requestError;
+        } finally {
+            setPendingProductIds((current) => current.filter((id) => id !== productId));
+        }
+    }, []);
+
+    const clearCart = useCallback(() => setItems([]), []);
+
+    const itemCount = useMemo(
+        () => items.reduce((count, item) => count + (item.quantity || 0), 0),
+        [items]
+    );
+
+    const subtotal = useMemo(
+        () => items.reduce((total, item) => total + ((item.product?.price ?? 0) * (item.quantity || 0)), 0),
+        [items]
+    );
 
     return (
-        <CartContext.Provider value={{ items, itemCount, subtotal, addToCart, changeQuantity, removeFromCart }}>
+        <CartContext.Provider value={{
+            items,
+            itemCount,
+            subtotal,
+            loading,
+            error,
+            pendingProductIds,
+            refreshCart,
+            addToCart,
+            changeQuantity,
+            removeFromCart,
+            clearCart,
+        }}>
             {children}
         </CartContext.Provider>
     );

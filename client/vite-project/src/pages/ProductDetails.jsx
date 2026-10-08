@@ -26,11 +26,13 @@ function PaperPage({ children }) {
 
 export default function ProductDetails() {
   const { id } = useParams();
-  const { addToCart } = useCart();
+  const { addToCart, pendingProductIds } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [added, setAdded] = useState(false);
+  const [wishlistSaved, setWishlistSaved] = useState(false);
+  const [wishlistSaving, setWishlistSaving] = useState(false);
 
   useEffect(() => {
     const getProduct = async () => {
@@ -50,6 +52,24 @@ export default function ProductDetails() {
 
     getProduct();
   }, [id]);
+
+  const handleWishlist = async () => {
+    if (!product || wishlistSaving || wishlistSaved) return;
+
+    setWishlistSaving(true);
+
+    try {
+      await axiosInstance.post(`/wishlist/${product._id}`);
+      setWishlistSaved(true);
+    } catch (requestError) {
+      console.error("Failed to save product:", requestError);
+      if (requestError.response?.status === 409) {
+        setWishlistSaved(true);
+      }
+    } finally {
+      setWishlistSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -145,18 +165,34 @@ export default function ProductDetails() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                addToCart(product);
-                setAdded(true);
-              }}
-              disabled={product.stock <= 0}
-              className="mt-6 min-h-12 w-full border-[3px] border-[#2d2d2d] bg-[#ff4d4d] px-6 py-2 text-lg font-bold text-white shadow-[4px_4px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#2d5da1] hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:bg-[#e5e0d8] disabled:text-[#55514c] disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_#2d2d2d] sm:w-auto"
-              style={{ borderRadius: wobblyRadius }}
-            >
-              {product.stock <= 0 ? "Out of stock" : added ? "Added to cart ✓" : "Add to cart"}
-            </button>
+            <div className="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await addToCart(product);
+                    setAdded(true);
+                  } catch {
+                    setAdded(false);
+                  }
+                }}
+                disabled={product.stock <= 0 || pendingProductIds.includes(product._id)}
+                className="min-h-12 border-[3px] border-[#2d2d2d] bg-[#ff4d4d] px-6 py-2 text-lg font-bold text-white shadow-[4px_4px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#2d5da1] hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:bg-[#e5e0d8] disabled:text-[#55514c] disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_#2d2d2d]"
+                style={{ borderRadius: wobblyRadius }}
+              >
+                {product.stock <= 0 ? "Out of stock" : pendingProductIds.includes(product._id) ? "Adding..." : added ? "Added to cart ✓" : "Add to cart"}
+              </button>
+
+              <button
+                type="button"
+                disabled={wishlistSaving || wishlistSaved}
+                onClick={handleWishlist}
+                className="min-h-12 border-[3px] border-[#2d2d2d] bg-white px-5 py-2 text-lg font-bold shadow-[4px_4px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#fff9c4] hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ borderRadius: wobblyRadius }}
+              >
+                {wishlistSaving ? "⏳ Saving..." : wishlistSaved ? "♥ Added to Wishlist" : "♡ Add to Wishlist"}
+              </button>
+            </div>
           </section>
         </article>
       </main>

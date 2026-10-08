@@ -30,6 +30,9 @@ export default function SiteHeader({ theme = "light", onLogout }) {
                     <nav aria-label="Main navigation" className="flex items-center gap-3 text-xs font-semibold sm:gap-6 sm:text-sm">
                         <Link to="/home" className={dark ? "text-slate-400 transition hover:text-white" : paper ? "transition hover:text-[#2d5da1] hover:underline hover:decoration-[#ff4d4d] hover:decoration-2 hover:underline-offset-4" : "transition hover:text-[#FF6B4A]"}>Home</Link>
                         <Link to="/products" className={dark ? "text-slate-400 transition hover:text-white" : paper ? "transition hover:text-[#2d5da1] hover:underline hover:decoration-[#ff4d4d] hover:decoration-2 hover:underline-offset-4" : "transition hover:text-[#FF6B4A]"}>Products</Link>
+                        <Link to="/wishlist" className={dark ? "text-slate-400 transition hover:text-white" : paper ? "transition hover:text-[#2d5da1] hover:underline hover:decoration-[#ff4d4d] hover:decoration-2 hover:underline-offset-4" : "transition hover:text-[#FF6B4A]"}>Wishlist</Link>
+                        <Link to="/orders" className={dark ? "text-slate-400 transition hover:text-white" : paper ? "transition hover:text-[#2d5da1] hover:underline hover:decoration-[#ff4d4d] hover:decoration-2 hover:underline-offset-4" : "transition hover:text-[#FF6B4A]"}>Orders</Link>
+                        <Link to="/cart" className={dark ? "text-slate-400 transition hover:text-white" : paper ? "transition hover:text-[#2d5da1] hover:underline hover:decoration-[#ff4d4d] hover:decoration-2 hover:underline-offset-4" : "transition hover:text-[#FF6B4A]"}>Cart ({itemCount})</Link>
                     </nav>
 
                     <div className="flex shrink-0 items-center gap-2 sm:gap-3">

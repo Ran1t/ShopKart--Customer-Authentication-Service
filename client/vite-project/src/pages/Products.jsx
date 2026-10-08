@@ -10,14 +10,25 @@ const cardRadius = "18px 5px 20px 7px / 8px 20px 6px 18px";
 
 export default function Products() {
     const [searchParams, setSearchParams] = useSearchParams();
-    const { addToCart } = useCart();
+    const { addToCart, pendingProductIds } = useCart();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
+    const [wishlist, setWishlist] = useState([]);
+    const [savingIds, setSavingIds] = useState([]);
     const search = searchParams.get("search") ?? "";
     const category = searchParams.get("category") ?? "All";
     const sort = searchParams.get("sort") ?? "featured";
+
+    const fetchWishlist = async () => {
+        try {
+            const response = await axiosInstance.get("/wishlist");
+            setWishlist(response.data.wishlist ?? []);
+        } catch (requestError) {
+            console.error("Failed to load wishlist:", requestError);
+        }
+    };
 
     useEffect(() => {
         let active = true;
@@ -43,6 +54,28 @@ export default function Products() {
         loadProducts();
         return () => { active = false; };
     }, [search, category, sort, retryCount]);
+
+    useEffect(() => {
+        fetchWishlist();
+    }, []);
+
+    const handleAddToWishlist = async (productId) => {
+        if (savingIds.includes(productId)) return;
+
+        setSavingIds((current) => [...current, productId]);
+
+        try {
+            await axiosInstance.post(`/wishlist/${productId}`);
+            await fetchWishlist();
+        } catch (requestError) {
+            console.error("Failed to save product:", requestError);
+            if (requestError.response?.status === 409) {
+                await fetchWishlist();
+            }
+        } finally {
+            setSavingIds((current) => current.filter((id) => id !== productId));
+        }
+    };
 
     const updateFilter = (key, value) => {
         const nextParams = new URLSearchParams(searchParams);
@@ -232,22 +265,37 @@ export default function Products() {
                                                 {product.stock > 0 ? `${product.stock} left` : "Sold out"}
                                             </span>
                                         </div>
-                                        <div className="mt-4 grid grid-cols-2 gap-2">
-                                            <Link
-                                                to={`/products/${product._id}`}
-                                                className="flex min-h-12 items-center justify-center border-2 border-[#2d2d2d] bg-[#e5e0d8] px-2 text-center text-base font-bold transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#2d5da1] hover:text-white hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none"
-                                                style={{ borderRadius: "12px 5px 10px 6px / 6px 10px 5px 12px" }}
-                                            >
-                                                View details
-                                            </Link>
+                                        <div className="mt-4 flex flex-col gap-2">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Link
+                                                    to={`/products/${product._id}`}
+                                                    className="flex min-h-12 items-center justify-center border-2 border-[#2d2d2d] bg-[#e5e0d8] px-2 text-center text-base font-bold transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#2d5da1] hover:text-white hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                                                    style={{ borderRadius: "12px 5px 10px 6px / 6px 10px 5px 12px" }}
+                                                >
+                                                    View details
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddToWishlist(product._id)}
+                                                    disabled={savingIds.includes(product._id) || wishlist.some((item) => item._id === product._id)}
+                                                    className="min-h-12 border-[3px] border-[#2d2d2d] bg-white px-2 text-base font-bold shadow-[3px_3px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#ff4d4d] hover:text-white hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-white disabled:hover:text-[#2d2d2d] disabled:hover:shadow-[3px_3px_0px_0px_#2d2d2d]"
+                                                    style={{ borderRadius: wobblyRadius }}
+                                                >
+                                                    {savingIds.includes(product._id)
+                                                        ? "⏳ Saving..."
+                                                        : wishlist.some((item) => item._id === product._id)
+                                                            ? "♥ Saved"
+                                                            : "♡ Wishlist"}
+                                                </button>
+                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={() => addToCart(product)}
-                                                disabled={product.stock <= 0}
-                                                className="min-h-12 border-[3px] border-[#2d2d2d] bg-white px-2 text-base font-bold shadow-[3px_3px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#ff4d4d] hover:text-white hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-white disabled:hover:text-[#2d2d2d] disabled:hover:shadow-[3px_3px_0px_0px_#2d2d2d]"
+                                                disabled={product.stock <= 0 || pendingProductIds.includes(product._id)}
+                                                className="min-h-12 border-[3px] border-[#2d2d2d] bg-[#ff4d4d] px-3 text-base font-bold text-white shadow-[3px_3px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#2d5da1] hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:bg-[#e5e0d8] disabled:text-[#55514c]"
                                                 style={{ borderRadius: wobblyRadius }}
                                             >
-                                                Add to cart
+                                                {pendingProductIds.includes(product._id) ? "Adding..." : product.stock > 0 ? "Add to cart" : "Sold out"}
                                             </button>
                                         </div>
                                     </div>

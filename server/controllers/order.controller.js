@@ -36,8 +36,10 @@ export const createPaymentOrder = async (req, res) => {
     for (const cartItem of customer.cart) {
       const product = byId.get(cartItem.product.toString());
       if (!product) return res.status(400).json({ success: false, message: "A product in your cart is no longer available. Remove it and try again." });
-      if (!Number.isInteger(cartItem.quantity) || cartItem.quantity < 1 || product.stock < cartItem.quantity) {
-        return res.status(400).json({ success: false, message: `Insufficient stock for ${product.name}.` });
+      // Cart items reserve stock when they are added, so product.stock is the
+      // remaining unreserved inventory and may be below the cart quantity.
+      if (!Number.isInteger(cartItem.quantity) || cartItem.quantity < 1) {
+        return res.status(400).json({ success: false, message: `Invalid quantity for ${product.name}.` });
       }
       items.push({ product: product._id, name: product.name, price: product.price, quantity: cartItem.quantity, image: product.image });
       totalAmount += product.price * cartItem.quantity;

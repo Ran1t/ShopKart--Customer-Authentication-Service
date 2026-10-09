@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { axiosInstance } from "../axiosCalls/axios";
 import { CartContext } from "./cartContext";
+import { useAuth } from "../auth/authContext";
 
 export default function CartProvider({ children }) {
+    const { user, loading: authLoading } = useAuth();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -24,11 +26,19 @@ export default function CartProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        refreshCart();
-    }, [refreshCart]);
+        if (authLoading) return;
+        if (user) {
+            refreshCart();
+        } else {
+            setItems([]);
+            setError(false);
+            setLoading(false);
+        }
+    }, [authLoading, user, refreshCart]);
 
     const addToCart = useCallback(async (product) => {
         if (!product || product.stock <= 0) return;
+        if (pendingProductIds.includes(product._id)) return;
 
         setPendingProductIds((current) => [...current, product._id]);
         setError(false);
@@ -38,15 +48,15 @@ export default function CartProvider({ children }) {
             setItems(response.data.cart ?? []);
         } catch (requestError) {
             console.error("Failed to add product to cart:", requestError);
-            setError(true);
             throw requestError;
         } finally {
             setPendingProductIds((current) => current.filter((id) => id !== product._id));
         }
-    }, []);
+    }, [pendingProductIds]);
 
     const changeQuantity = useCallback(async (productId, quantity) => {
         if (!productId || quantity < 1) return;
+        if (pendingProductIds.includes(productId)) return;
 
         setPendingProductIds((current) => [...current, productId]);
         setError(false);
@@ -56,15 +66,15 @@ export default function CartProvider({ children }) {
             setItems(response.data.cart ?? []);
         } catch (requestError) {
             console.error("Failed to update cart quantity:", requestError);
-            setError(true);
             throw requestError;
         } finally {
             setPendingProductIds((current) => current.filter((id) => id !== productId));
         }
-    }, []);
+    }, [pendingProductIds]);
 
     const removeFromCart = useCallback(async (productId) => {
         if (!productId) return;
+        if (pendingProductIds.includes(productId)) return;
 
         setPendingProductIds((current) => [...current, productId]);
         setError(false);
@@ -74,12 +84,11 @@ export default function CartProvider({ children }) {
             setItems(response.data.cart ?? []);
         } catch (requestError) {
             console.error("Failed to remove product from cart:", requestError);
-            setError(true);
             throw requestError;
         } finally {
             setPendingProductIds((current) => current.filter((id) => id !== productId));
         }
-    }, []);
+    }, [pendingProductIds]);
 
     const clearCart = useCallback(() => setItems([]), []);
 

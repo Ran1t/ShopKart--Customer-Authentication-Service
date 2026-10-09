@@ -17,6 +17,8 @@ export default function Products() {
     const [retryCount, setRetryCount] = useState(0);
     const [wishlist, setWishlist] = useState([]);
     const [savingIds, setSavingIds] = useState([]);
+    const [wishlistError, setWishlistError] = useState("");
+    const [cartError, setCartError] = useState("");
     const search = searchParams.get("search") ?? "";
     const category = searchParams.get("category") ?? "All";
     const sort = searchParams.get("sort") ?? "featured";
@@ -59,21 +61,45 @@ export default function Products() {
         fetchWishlist();
     }, []);
 
-    const handleAddToWishlist = async (productId) => {
+    const handleToggleWishlist = async (productId) => {
         if (savingIds.includes(productId)) return;
 
+        const isSaved = wishlist.some((item) => item._id === productId);
+        setWishlistError("");
         setSavingIds((current) => [...current, productId]);
 
         try {
-            await axiosInstance.post(`/wishlist/${productId}`);
-            await fetchWishlist();
+            if (isSaved) {
+                await axiosInstance.delete(`/wishlist/${productId}`);
+                setWishlist((current) => current.filter((item) => item._id !== productId));
+            } else {
+                await axiosInstance.post(`/wishlist/${productId}`);
+                await fetchWishlist();
+            }
         } catch (requestError) {
-            console.error("Failed to save product:", requestError);
+            console.error("Failed to update wishlist:", requestError);
             if (requestError.response?.status === 409) {
                 await fetchWishlist();
+            } else {
+                setWishlistError(isSaved
+                    ? "Unable to remove product from your wishlist. Please try again."
+                    : "Unable to save product. Please try again.");
             }
         } finally {
             setSavingIds((current) => current.filter((id) => id !== productId));
+        }
+    };
+
+    const handleAddToCart = async (product) => {
+        setCartError("");
+        try {
+            await addToCart(product);
+            setProducts((current) => current.map((item) => item._id === product._id
+                ? { ...item, stock: Math.max(0, item.stock - 1) }
+                : item));
+        } catch {
+            setCartError("Unable to add this product to your cart. Please try again.");
+            setRetryCount((count) => count + 1);
         }
     };
 
@@ -234,6 +260,9 @@ export default function Products() {
                             )}
                         </div>
                     ) : (
+                        <>
+                        {cartError && <p role="alert" className="mb-4 border-2 border-[#ff4d4d] bg-white px-4 py-3 text-lg text-[#b42318]">{cartError}</p>}
+                        {wishlistError && <p role="alert" className="mb-4 border-2 border-[#ff4d4d] bg-white px-4 py-3 text-lg text-[#b42318]">{wishlistError}</p>}
                         <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
                             {visibleProducts.map((product, index) => (
                                 <article
@@ -276,21 +305,21 @@ export default function Products() {
                                                 </Link>
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleAddToWishlist(product._id)}
-                                                    disabled={savingIds.includes(product._id) || wishlist.some((item) => item._id === product._id)}
+                                                    onClick={() => handleToggleWishlist(product._id)}
+                                                    disabled={savingIds.includes(product._id)}
                                                     className="min-h-12 border-[3px] border-[#2d2d2d] bg-white px-2 text-base font-bold shadow-[3px_3px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#ff4d4d] hover:text-white hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-white disabled:hover:text-[#2d2d2d] disabled:hover:shadow-[3px_3px_0px_0px_#2d2d2d]"
                                                     style={{ borderRadius: wobblyRadius }}
                                                 >
                                                     {savingIds.includes(product._id)
-                                                        ? "⏳ Saving..."
+                                                        ? wishlist.some((item) => item._id === product._id) ? "Removing..." : "⏳ Saving..."
                                                         : wishlist.some((item) => item._id === product._id)
-                                                            ? "♥ Saved"
-                                                            : "♡ Wishlist"}
+                                                            ? "♥ Remove from Wishlist"
+                                                            : "♡ Add to Wishlist"}
                                                 </button>
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => addToCart(product)}
+                                                onClick={() => handleAddToCart(product)}
                                                 disabled={product.stock <= 0 || pendingProductIds.includes(product._id)}
                                                 className="min-h-12 border-[3px] border-[#2d2d2d] bg-[#ff4d4d] px-3 text-base font-bold text-white shadow-[3px_3px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#2d5da1] hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:bg-[#e5e0d8] disabled:text-[#55514c]"
                                                 style={{ borderRadius: wobblyRadius }}
@@ -302,6 +331,7 @@ export default function Products() {
                                 </article>
                             ))}
                         </div>
+                        </>
                     )}
                 </section>
             </main>

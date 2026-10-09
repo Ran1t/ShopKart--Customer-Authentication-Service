@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../cart/cartContext";
 import SiteHeader from "../components/SiteHeader";
@@ -5,11 +6,17 @@ import SiteHeader from "../components/SiteHeader";
 const wobblyRadius = "255px 15px 225px 15px / 15px 225px 15px 255px";
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, loading, error, refreshCart, changeQuantity, removeFromCart } = useCart();
+  const { items, itemCount, subtotal, loading, error, pendingProductIds, refreshCart, changeQuantity, removeFromCart } = useCart();
+  const [actionError, setActionError] = useState("");
 
   const handleQuantityChange = async (productId, nextQuantity) => {
     if (nextQuantity < 1) return;
-    await changeQuantity(productId, nextQuantity);
+    setActionError("");
+    try {
+      await changeQuantity(productId, nextQuantity);
+    } catch {
+      setActionError("Unable to update your cart. Please try again.");
+    }
   };
 
   if (loading) {
@@ -49,6 +56,7 @@ export default function CartPage() {
       <SiteHeader theme="paper" />
 
       <main className="mx-auto max-w-5xl px-5 py-10 sm:px-6 sm:py-14">
+        {actionError && <p role="alert" className="mb-5 border-2 border-[#ff4d4d] bg-white px-4 py-3 text-lg text-[#9c2727]">{actionError}</p>}
         <section className="mb-8 border-[3px] border-[#2d2d2d] bg-white px-6 py-8 shadow-[8px_8px_0px_0px_#2d2d2d] sm:px-10 sm:py-10" style={{ borderRadius: wobblyRadius }}>
           <h1 className="font-[Kalam] text-4xl sm:text-5xl">My Cart</h1>
           {!items.length ? null : <p className="mt-2 text-lg text-[#55514c]">{itemCount} {itemCount === 1 ? "item" : "items"} in your cart</p>}
@@ -80,17 +88,20 @@ export default function CartPage() {
 
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3 border-2 border-[#2d2d2d] bg-[#f5f3ef] px-2 py-1" style={{ borderRadius: "12px 6px 10px 7px" }}>
-                        <button type="button" className="flex h-8 w-8 items-center justify-center border-2 border-[#2d2d2d] bg-white text-xl font-bold" style={{ borderRadius: "8px 4px 6px 5px" }} onClick={() => handleQuantityChange(product._id, quantity - 1)} aria-label={`Decrease quantity for ${product.name}`}>
+                        <button type="button" disabled={pendingProductIds.includes(product._id) || quantity <= 1} className="flex h-8 w-8 items-center justify-center border-2 border-[#2d2d2d] bg-white text-xl font-bold disabled:opacity-50" style={{ borderRadius: "8px 4px 6px 5px" }} onClick={() => handleQuantityChange(product._id, quantity - 1)} aria-label={`Decrease quantity for ${product.name}`}>
                           −
                         </button>
                         <span className="min-w-6 text-center text-lg font-bold">{quantity}</span>
-                        <button type="button" className="flex h-8 w-8 items-center justify-center border-2 border-[#2d2d2d] bg-white text-xl font-bold" style={{ borderRadius: "8px 4px 6px 5px" }} onClick={() => handleQuantityChange(product._id, quantity + 1)} aria-label={`Increase quantity for ${product.name}`}>
+                        <button type="button" disabled={pendingProductIds.includes(product._id) || product.stock <= 0} className="flex h-8 w-8 items-center justify-center border-2 border-[#2d2d2d] bg-white text-xl font-bold disabled:opacity-50" style={{ borderRadius: "8px 4px 6px 5px" }} onClick={() => handleQuantityChange(product._id, quantity + 1)} aria-label={`Increase quantity for ${product.name}`}>
                           +
                         </button>
                       </div>
 
-                      <button type="button" onClick={() => removeFromCart(product._id)} className="text-base font-bold text-[#2d2d2d] underline decoration-[#ff4d4d] decoration-2 underline-offset-4 transition hover:text-[#2d5da1]">
-                        Remove
+                      <button type="button" disabled={pendingProductIds.includes(product._id)} onClick={async () => {
+                        setActionError("");
+                        try { await removeFromCart(product._id); } catch { setActionError("Unable to remove this product. Please try again."); }
+                      }} className="text-base font-bold text-[#2d2d2d] underline decoration-[#ff4d4d] decoration-2 underline-offset-4 transition hover:text-[#2d5da1] disabled:opacity-50">
+                        {pendingProductIds.includes(product._id) ? "Updating..." : "Remove"}
                       </button>
                     </div>
                   </div>

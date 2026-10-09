@@ -10,37 +10,37 @@ export const addToCart = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid product ID" });
     }
 
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
-    }
-
     const customer = await Customer.findById(req.customer._id);
     if (!customer) {
       return res.status(404).json({ success: false, message: "Customer not found" });
     }
 
-    const existingItem = customer.cart.find((item) => item.product.toString() === productId);
-    if (existingItem) {
-      const nextQuantity = existingItem.quantity + 1;
-      if (nextQuantity > product.stock) {
-        return res.status(400).json({
-          success: false,
-          message: "Requested quantity exceeds available stock",
-        });
-      }
-      existingItem.quantity = nextQuantity;
-    } else {
-      if (product.stock < 1) {
-        return res.status(400).json({
-          success: false,
-          message: "Product is out of stock",
-        });
-      }
-      customer.cart.push({ product: product._id, quantity: 1 });
+    const productExists = await Product.exists({ _id: productId });
+    if (!productExists) {
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    await customer.save();
+    // Reserve one unit immediately. The filter makes simultaneous add requests
+    // unable to take stock below zero.
+    const reservedProduct = await Product.findOneAndUpdate(
+      { _id: productId, stock: { $gt: 0 } },
+      { $inc: { stock: -1 } },
+      { new: true }
+    );
+    if (!reservedProduct) {
+      return res.status(400).json({ success: false, message: "Product is out of stock" });
+    }
+
+    const existingItem = customer.cart.find((item) => item.product.toString() === productId);
+    if (existingItem) existingItem.quantity += 1;
+    else customer.cart.push({ product: reservedProduct._id, quantity: 1 });
+
+    try {
+      await customer.save();
+    } catch (saveError) {
+      await Product.updateOne({ _id: productId }, { $inc: { stock: 1 } });
+      throw saveError;
+    }
 
     const populatedCustomer = await Customer.findById(req.customer._id).populate({
       path: "cart.product",
@@ -113,15 +113,31 @@ export const updateCartQuantity = async (req, res) => {
       return res.status(404).json({ success: false, message: "Product not in cart" });
     }
 
-    if (quantity > product.stock) {
-      return res.status(400).json({
-        success: false,
-        message: "Requested quantity exceeds available stock",
-      });
+    const previousQuantity = cartItem.quantity;
+    const difference = quantity - previousQuantity;
+    if (difference > 0) {
+      const reservedProduct = await Product.findOneAndUpdate(
+        { _id: productId, stock: { $gte: difference } },
+        { $inc: { stock: -difference } },
+        { new: true }
+      );
+      if (!reservedProduct) {
+        return res.status(400).json({
+          success: false,
+          message: "Requested quantity exceeds available stock",
+        });
+      }
+    } else if (difference < 0) {
+      await Product.updateOne({ _id: productId }, { $inc: { stock: -difference } });
     }
-
     cartItem.quantity = quantity;
-    await customer.save();
+    try {
+      await customer.save();
+    } catch (saveError) {
+      if (difference > 0) await Product.updateOne({ _id: productId }, { $inc: { stock: difference } });
+      else if (difference < 0) await Product.updateOne({ _id: productId, stock: { $gte: -difference } }, { $inc: { stock: difference } });
+      throw saveError;
+    }
 
     const updatedCustomer = await Customer.findById(req.customer._id).populate({
       path: "cart.product",
@@ -155,14 +171,19 @@ export const removeFromCart = async (req, res) => {
       return res.status(404).json({ success: false, message: "Customer not found" });
     }
 
-    const beforeCount = customer.cart.length;
-    customer.cart = customer.cart.filter((item) => item.product.toString() !== productId);
-
-    if (customer.cart.length === beforeCount) {
+    const cartItem = customer.cart.find((item) => item.product.toString() === productId);
+    if (!cartItem) {
       return res.status(404).json({ success: false, message: "Product not in cart" });
     }
 
-    await customer.save();
+    await Product.updateOne({ _id: productId }, { $inc: { stock: cartItem.quantity } });
+    customer.cart = customer.cart.filter((item) => item.product.toString() !== productId);
+    try {
+      await customer.save();
+    } catch (saveError) {
+      await Product.updateOne({ _id: productId, stock: { $gte: cartItem.quantity } }, { $inc: { stock: -cartItem.quantity } });
+      throw saveError;
+    }
 
     const updatedCustomer = await Customer.findById(req.customer._id).populate({
       path: "cart.product",

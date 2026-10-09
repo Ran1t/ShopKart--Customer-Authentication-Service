@@ -31,6 +31,7 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [added, setAdded] = useState(false);
+  const [cartError, setCartError] = useState("");
   const [wishlistSaved, setWishlistSaved] = useState(false);
   const [wishlistSaving, setWishlistSaving] = useState(false);
 
@@ -169,11 +170,14 @@ export default function ProductDetails() {
               <button
                 type="button"
                 onClick={async () => {
+                  setCartError("");
                   try {
                     await addToCart(product);
                     setAdded(true);
+                    setProduct((current) => current ? { ...current, stock: Math.max(0, current.stock - 1) } : current);
                   } catch {
                     setAdded(false);
+                    setCartError("Unable to add this product to your cart. Please try again.");
                   }
                 }}
                 disabled={product.stock <= 0 || pendingProductIds.includes(product._id)}
@@ -182,6 +186,7 @@ export default function ProductDetails() {
               >
                 {product.stock <= 0 ? "Out of stock" : pendingProductIds.includes(product._id) ? "Adding..." : added ? "Added to cart ✓" : "Add to cart"}
               </button>
+              {cartError && <p role="alert" className="basis-full text-base font-bold text-[#b42318]">{cartError}</p>}
 
               <button
                 type="button"

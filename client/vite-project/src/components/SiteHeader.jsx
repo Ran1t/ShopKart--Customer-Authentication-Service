@@ -14,9 +14,22 @@ function CartIcon() {
 
 export default function SiteHeader({ theme = "light", onLogout }) {
     const [cartOpen, setCartOpen] = useState(false);
-    const { items, itemCount, subtotal, changeQuantity, removeFromCart } = useCart();
+    const { items, itemCount, subtotal, pendingProductIds, changeQuantity, removeFromCart } = useCart();
+    const [cartActionError, setCartActionError] = useState("");
     const dark = theme === "dark";
     const paper = theme === "paper";
+
+    const updateDrawerQuantity = async (productId, quantity) => {
+        setCartActionError("");
+        try { await changeQuantity(productId, quantity); }
+        catch { setCartActionError("Unable to update the cart. Please try again."); }
+    };
+
+    const removeDrawerItem = async (productId) => {
+        setCartActionError("");
+        try { await removeFromCart(productId); }
+        catch { setCartActionError("Unable to remove this product. Please try again."); }
+    };
 
     return (
         <>
@@ -75,6 +88,7 @@ export default function SiteHeader({ theme = "light", onLogout }) {
                             </div>
                         ) : (
                             <>
+                                {cartActionError && <p role="alert" className="px-5 pt-3 text-sm font-semibold text-[#b42318]">{cartActionError}</p>}
                                 <ul className="flex-1 divide-y divide-[#E4E2DC] overflow-y-auto px-5">
                                     {items.map(({ product, quantity }) => (
                                         <li key={product._id} className="flex gap-3 py-4">
@@ -82,13 +96,13 @@ export default function SiteHeader({ theme = "light", onLogout }) {
                                             <div className="flex min-w-0 flex-1 flex-col">
                                                 <div className="flex items-start justify-between gap-2">
                                                     <p className="line-clamp-2 text-sm font-semibold">{product.name}</p>
-                                                    <button type="button" onClick={() => removeFromCart(product._id)} aria-label={`Remove ${product.name}`} className="shrink-0 text-xs text-[#6B7773] underline hover:text-[#D84F38]">Remove</button>
+                                                    <button type="button" disabled={pendingProductIds.includes(product._id)} onClick={() => removeDrawerItem(product._id)} aria-label={`Remove ${product.name}`} className="shrink-0 text-xs text-[#6B7773] underline hover:text-[#D84F38] disabled:opacity-50">Remove</button>
                                                 </div>
                                                 <p className="mt-1 text-sm font-bold">₹{Number(product.price).toLocaleString("en-IN")}</p>
                                                 <div className="mt-auto flex items-center gap-3 pt-2">
-                                                    <button type="button" onClick={() => changeQuantity(product._id, quantity - 1)} aria-label={`Decrease ${product.name} quantity`} className="flex h-7 w-7 items-center justify-center rounded border border-[#E4E2DC] hover:bg-[#FFF4EC]">−</button>
+                                                    <button type="button" disabled={pendingProductIds.includes(product._id) || quantity <= 1} onClick={() => updateDrawerQuantity(product._id, quantity - 1)} aria-label={`Decrease ${product.name} quantity`} className="flex h-7 w-7 items-center justify-center rounded border border-[#E4E2DC] hover:bg-[#FFF4EC] disabled:opacity-50">−</button>
                                                     <span className="min-w-4 text-center text-sm">{quantity}</span>
-                                                    <button type="button" onClick={() => changeQuantity(product._id, quantity + 1)} disabled={quantity >= product.stock} aria-label={`Increase ${product.name} quantity`} className="flex h-7 w-7 items-center justify-center rounded border border-[#E4E2DC] hover:bg-[#FFF4EC] disabled:cursor-not-allowed disabled:opacity-40">+</button>
+                                                    <button type="button" onClick={() => updateDrawerQuantity(product._id, quantity + 1)} disabled={pendingProductIds.includes(product._id) || product.stock <= 0} aria-label={`Increase ${product.name} quantity`} className="flex h-7 w-7 items-center justify-center rounded border border-[#E4E2DC] hover:bg-[#FFF4EC] disabled:cursor-not-allowed disabled:opacity-40">+</button>
                                                 </div>
                                             </div>
                                         </li>

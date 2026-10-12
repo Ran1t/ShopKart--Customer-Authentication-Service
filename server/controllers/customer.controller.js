@@ -2,10 +2,11 @@ import { Customer } from "../models/customer.model.js"
 import bcrypt from "bcrypt"
 import { genToken } from "../utils/generateTokens.js"
 
-const cookiesOptions={
-    httpOnly : true,
-    secure : true
-}
+const getCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+});
 
 export const registerCustomer= async (req,res)=>{
     try{
@@ -40,7 +41,7 @@ export const registerCustomer= async (req,res)=>{
 
         const token=genToken(newCustomer._id)
 
-        res.cookie("token",token,cookiesOptions)
+        res.cookie("token", token, getCookieOptions())
 
         // Remove password before sending customer data
         const customerData=newCustomer.toObject()
@@ -71,7 +72,7 @@ export const loginCustomer=async (req,res)=>{
         // jwt token 
 
         const token=genToken(customer._id)
-        res.cookie("token",token,cookiesOptions)
+        res.cookie("token", token, getCookieOptions())
 
         // Remove password before sending customer data
 
@@ -94,7 +95,7 @@ export const getUser=async(req,res)=>{
 }
 
 export const logoutCustomer=async(req,res)=>{
-    res.clearCookie("token",cookiesOptions)
+    res.clearCookie("token", getCookieOptions())
     res.status(200).json({"success":true,"message":"Logout Successfully"})
 }
 

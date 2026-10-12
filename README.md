@@ -91,4 +91,11 @@ Wishlist, cart, and order endpoints require the customer login cookie. The serve
 
 ## Configuration and secrets
 
-Keep local configuration in `server/.env`. The root `.gitignore` excludes `.env` files, dependency directories, and frontend build output. When deploying, configure these values as environment variables in the hosting platform and update the server's allowed frontend origins and cookie settings for the deployed domains.
+Keep local backend configuration in `server/.env`; `server/.gitignore` excludes that file. Never commit frontend or backend environment files or credentials.
+
+### Deployment environment variables
+
+- **Backend:** Set `dbUrl`, `JWT_SECRET`, and (for checkout) `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in the backend host's environment settings. Set `FRONTEND_URL` to the deployed frontend origin, with no trailing slash. The server reads the host-provided `PORT` automatically. Set `NODE_ENV=production` so authentication cookies use secure cross-site settings.
+- **Frontend:** Set `VITE_API_URL` to the deployed backend origin, including the trailing slash, for example `https://your-api.example.com/`. This value is public configuration; never put secrets in `VITE_` variables.
+
+For local development, leave `VITE_API_URL` unset; the frontend will use port `8000` on the current host.

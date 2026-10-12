@@ -25,7 +25,7 @@ export const addToCart = async (req, res) => {
     const reservedProduct = await Product.findOneAndUpdate(
       { _id: productId, stock: { $gt: 0 } },
       { $inc: { stock: -1 } },
-      { new: true }
+      { returnDocument: "after" }
     );
     if (!reservedProduct) {
       return res.status(400).json({ success: false, message: "Product is out of stock" });
@@ -119,7 +119,7 @@ export const updateCartQuantity = async (req, res) => {
       const reservedProduct = await Product.findOneAndUpdate(
         { _id: productId, stock: { $gte: difference } },
         { $inc: { stock: -difference } },
-        { new: true }
+        { returnDocument: "after" }
       );
       if (!reservedProduct) {
         return res.status(400).json({

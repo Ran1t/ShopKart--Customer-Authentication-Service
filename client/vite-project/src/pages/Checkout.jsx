@@ -9,7 +9,9 @@ const fields = [
   ["fullName", "Full name"], ["phone", "Phone number"], ["addressLine1", "Address line"],
   ["city", "City"], ["state", "State"], ["pincode", "Pincode"],
 ];
-const inputClass = "w-full rounded-lg border border-[#D9D7D1] bg-white px-3 py-3 text-sm outline-none focus:border-[#FF6B4A] focus:ring-2 focus:ring-[#FF6B4A]/20";
+const wobblyRadius = "255px 15px 225px 15px / 15px 225px 15px 255px";
+const inputRadius = "8px 18px 7px 16px / 16px 7px 18px 8px";
+const inputClass = "w-full border-2 border-[#2d2d2d] bg-[#fdfbf7] px-4 py-3 text-lg text-[#2d2d2d] outline-none transition focus:border-[#2d5da1] focus:ring-2 focus:ring-[#2d5da1]/20 disabled:opacity-60";
 
 function loadRazorpay() {
   if (window.Razorpay) return Promise.resolve(true);
@@ -28,7 +30,14 @@ export default function Checkout() {
   const [address, setAddress] = useState(blankAddress);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  if (loading) return <main className="min-h-screen bg-[#f8f7f3] p-10 text-center">Loading your cart…</main>;
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#fdfbf7] p-10 text-center font-[Patrick_Hand] text-lg text-[#2d2d2d]">
+        Loading your cart…
+      </main>
+    );
+  }
   if (!items.length) return <Navigate to="/cart" replace />;
 
   const submit = async (event) => {
@@ -45,10 +54,14 @@ export default function Checkout() {
       if (!loaded) throw new Error("Unable to load Razorpay Checkout. Check your connection and try again.");
       const { data } = await axiosInstance.post("/orders/create-payment-order", { shippingAddress: address });
       const payment = new window.Razorpay({
-        key: data.key, amount: data.amount, currency: data.currency, name: "ShopKart",
-        description: "ShopKart order payment", order_id: data.razorpayOrderId,
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        name: "ShopKart",
+        description: "ShopKart order payment",
+        order_id: data.razorpayOrderId,
         prefill: { name: address.fullName, contact: address.phone },
-        theme: { color: "#FF6B4A" },
+        theme: { color: "#ff4d4d" },
         modal: { ondismiss: () => setBusy(false) },
         handler: async (response) => {
           try {
@@ -77,29 +90,83 @@ export default function Checkout() {
     }
   };
 
-  return <div className="min-h-screen bg-[#f8f7f3] text-[#1B2A2E]"><SiteHeader />
-    <main className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
-      <Link to="/cart" className="text-sm font-semibold text-[#D84F38]">← Back to cart</Link>
-      <h1 className="mt-3 text-3xl font-bold">Checkout</h1>
-      <form onSubmit={submit} className="mt-7 grid gap-7 lg:grid-cols-[1.4fr_.8fr]">
-        <section className="rounded-2xl border border-[#E4E2DC] bg-white p-5 sm:p-7">
-          <h2 className="text-xl font-bold">Shipping details</h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            {fields.map(([key, label]) => <label key={key} className={key === "addressLine1" ? "sm:col-span-2" : ""}>
-              <span className="mb-1.5 block text-sm font-medium">{label}</span>
-              <input className={inputClass} autoComplete={key === "addressLine1" ? "street-address" : key} value={address[key]} onChange={(event) => setAddress((current) => ({ ...current, [key]: event.target.value }))} />
-            </label>)}
-          </div>
-        </section>
-        <aside className="h-fit rounded-2xl border border-[#E4E2DC] bg-white p-5 sm:p-7">
-          <h2 className="text-xl font-bold">Review order</h2>
-          <ul className="mt-4 divide-y divide-[#EEECE7]">{items.map(({ product, quantity }) => <li key={product._id} className="flex justify-between gap-4 py-3 text-sm"><span>{product.name} × {quantity}</span><strong>₹{(product.price * quantity).toLocaleString("en-IN")}</strong></li>)}</ul>
-          <div className="mt-4 flex justify-between border-t border-[#EEECE7] pt-4 text-lg font-bold"><span>Total</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
-          {error && <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-          <button disabled={busy} className="mt-5 w-full rounded-lg bg-[#FF6B4A] px-4 py-3 font-semibold text-white hover:bg-[#F15A3A] disabled:cursor-wait disabled:opacity-60">{busy ? "Waiting for payment…" : "Pay with Razorpay"}</button>
-          <p className="mt-3 text-center text-xs text-[#6B7773]">Secure Razorpay test mode checkout</p>
-        </aside>
-      </form>
-    </main>
-  </div>;
+  return (
+    <div
+      className="min-h-screen bg-[#fdfbf7] font-[Patrick_Hand] text-[#2d2d2d]"
+      style={{ backgroundImage: "radial-gradient(#e5e0d8 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+    >
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Patrick+Hand&display=swap');`}</style>
+      <SiteHeader theme="paper" />
+      <main className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-12">
+        <Link to="/cart" className="inline-flex min-h-10 items-center font-bold text-[#2d5da1] underline decoration-[#2d5da1] decoration-2 underline-offset-4 hover:text-[#ff4d4d]">
+          <span aria-hidden="true" className="mr-2">←</span>Back to cart
+        </Link>
+        <div className="mt-3 border-b-2 border-dashed border-[#2d2d2d]/40 pb-5">
+          <p className="inline-block -rotate-1 bg-[#fff9c4] px-3 py-1 text-sm font-bold tracking-[0.12em] text-[#2d5da1]" style={{ borderRadius: "4px 2px 6px 3px" }}>
+            ALMOST YOURS
+          </p>
+          <h1 className="mt-2 font-[Kalam] text-4xl sm:text-5xl">Checkout</h1>
+          <p className="mt-1 text-lg text-[#55514c]">Add your delivery details and review your finds.</p>
+        </div>
+
+        <form onSubmit={submit} className="mt-7 grid items-start gap-7 lg:grid-cols-[1.35fr_0.85fr]">
+          <section className="border-2 border-[#2d2d2d] bg-white p-5 shadow-[5px_5px_0px_0px_rgba(45,45,45,0.25)] sm:p-7" style={{ borderRadius: "18px 5px 20px 7px / 8px 20px 6px 18px" }}>
+            <div className="flex items-start gap-3 border-b-2 border-dashed border-[#2d2d2d]/30 pb-4">
+              <span className="flex h-9 w-9 rotate-[-3deg] items-center justify-center border-2 border-[#2d2d2d] bg-[#fff9c4] font-[Kalam] text-lg shadow-[2px_2px_0px_0px_#2d2d2d]" style={{ borderRadius: "8px 14px 6px 12px" }}>1</span>
+              <div>
+                <h2 className="font-[Kalam] text-2xl sm:text-3xl">Shipping details</h2>
+                <p className="text-base text-[#55514c]">Where should we send your order?</p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {fields.map(([key, label]) => (
+                <label key={key} className={key === "addressLine1" ? "sm:col-span-2" : ""}>
+                  <span className="mb-1.5 block text-base font-bold">{label} <span className="text-[#ff4d4d]">*</span></span>
+                  <input
+                    className={inputClass}
+                    style={{ borderRadius: inputRadius }}
+                    name={key}
+                    autoComplete={key === "addressLine1" ? "street-address" : key}
+                    value={address[key]}
+                    onChange={(event) => setAddress((current) => ({ ...current, [key]: event.target.value }))}
+                  />
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <aside className="border-2 border-[#2d2d2d] bg-[#fff9c4] p-5 shadow-[5px_5px_0px_0px_#2d2d2d] sm:p-7" style={{ borderRadius: "7px 18px 6px 16px / 16px 6px 18px 7px" }}>
+            <div className="flex items-start gap-3 border-b-2 border-dashed border-[#2d2d2d]/40 pb-4">
+              <span className="flex h-9 w-9 rotate-2 items-center justify-center border-2 border-[#2d2d2d] bg-white font-[Kalam] text-lg shadow-[2px_2px_0px_0px_#2d2d2d]" style={{ borderRadius: "14px 7px 12px 6px" }}>2</span>
+              <div>
+                <h2 className="font-[Kalam] text-2xl sm:text-3xl">Review order</h2>
+                <p className="text-base text-[#55514c]">A final look in your cart.</p>
+              </div>
+            </div>
+            <ul className="mt-3 divide-y divide-dashed divide-[#2d2d2d]/30">
+              {items.map(({ product, quantity }) => (
+                <li key={product._id} className="flex justify-between gap-4 py-3 text-base">
+                  <span className="min-w-0">{product.name} <span className="text-[#55514c]">× {quantity}</span></span>
+                  <strong className="shrink-0">₹{(product.price * quantity).toLocaleString("en-IN")}</strong>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2 flex justify-between border-t-2 border-[#2d2d2d] pt-4 font-[Kalam] text-2xl">
+              <span>Total</span><span>₹{subtotal.toLocaleString("en-IN")}</span>
+            </div>
+            {error && <p role="alert" className="mt-4 border-2 border-[#ff4d4d] bg-white px-4 py-3 text-base text-[#9c2727]" style={{ borderRadius: "8px 16px 7px 14px" }}>{error}</p>}
+            <button
+              type="submit"
+              disabled={busy}
+              className="mt-5 min-h-12 w-full border-[3px] border-[#2d2d2d] bg-[#ff4d4d] px-4 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_0px_#2d2d2d] transition duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-[#2d5da1] hover:shadow-[2px_2px_0px_0px_#2d2d2d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-wait disabled:opacity-60"
+              style={{ borderRadius: wobblyRadius }}
+            >
+              {busy ? "Waiting for payment…" : "Pay with Razorpay"}
+            </button>
+            <p className="mt-3 text-center text-sm text-[#55514c]">Secure Razorpay test mode checkout</p>
+          </aside>
+        </form>
+      </main>
+    </div>
+  );
 }
